@@ -9,23 +9,22 @@ class Node
 end
 
 class Tree
-  attr_accessor :array, :root
+  attr_accessor :root, :array
 
   def initialize(array)
     @array = array.sort.uniq
-    @root = build_tree(@array)
+    @root = build_tree(array)
   end
 
-  def build_tree(arr)
-    return nil if arr.empty?
+  def build_tree(arr, first = 0, last = arr.length - 1)
+    return nil if first > last
 
-    mid = (arr.size - 1) / 2
-    root_node = Node.new(arr[mid])
+    mid = (first + last) / 2
+    root = Node.new(arr[mid])
+    root.left = build_tree(arr, first, mid - 1)
+    root.right = build_tree(arr, mid + 1, last)
 
-    root_node.left = build_tree(arr[0...mid])
-    root_node.right = build_tree(arr[(mid + 1)..-1])
-
-    root_node
+    root
   end
 
   def insert(val, root = @root)
@@ -76,13 +75,14 @@ class Tree
     end
   end
 
-  def level_order(queue = [@root])
+  def level_order
     i = 0
+    queue = [@root]
     arr = []
     while queue[i]
       arr.push(queue[i].data)
-      queue.push(queue[i].left)
-      queue.push(queue[i].right)
+      queue.push(queue[i].left) if queue[i].left
+      queue.push(queue[i].right) if queue[i].right
       i += 1
     end
     arr
@@ -133,17 +133,13 @@ class Tree
   end
 
   def balanced?(node = root)
+    return nil if node.nil?
+
     (height(node.left) - height(node.right)).abs <= 1
   end
 
-  def rebalance(node = root)
-    return nil if node.nil?
-    arr = level_order
-    if balanced?
-      node
-    else
-      
-    # end
+  def rebalance
+    @root = build_tree(level_order)
   end
 
   def pretty_print(node = @root, prefix = '', is_left = true)
@@ -153,16 +149,37 @@ class Tree
   end
 end
 
-arr = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]
-bst = Tree.new(arr)
+# 1. create a binary search tree from an array of random numbers.
+bst = Tree.new(Array.new(15) { rand(1..100) })
 
-# p bst.pretty_print
-# bst.delete(3)
-# bst.delete(7)
-# bst.delete(5)
-# bst.delete(4)
-p bst.rebalance
+# 2. confirm that the tree is balanced.
+p bst.balanced?
 
-# p bst.level_order
+# 3. Print out all elements in level, pre, post, and in order
+p "level_order: #{bst.level_order}"
+p "preorder: #{bst.preorder}"
+p "postorder: #{bst.postorder}"
+p "inorder: #{bst.inorder}"
 
-# puts bst.pretty_print
+# 4. try to unbalance the tree by adding several numbers > 100
+bst.insert(1010)
+bst.insert(245)
+bst.insert(6693)
+bst.insert(202)
+
+# 5. Confirm that the tree is unbalanced.
+p bst.balanced?
+
+# Balance the tree.
+bst.rebalance
+
+# 7. Confirm that the tree is balanced.
+p bst.balanced?
+
+# 8. Print out all elements in level, pre, post, and in order.
+
+p "level_order: #{bst.level_order}"
+p "preorder: #{bst.preorder}"
+p "postorder: #{bst.postorder}"
+p "inorder: #{bst.inorder}"
+p bst.pretty_print
